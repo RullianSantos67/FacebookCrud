@@ -11,7 +11,7 @@
 <body>
   <div class="container">
     <div class="row justify-content-center">
-      <form action=/facebook/post/save" method="post" class="col-8">
+      <form action="${pageContext.request.contextPath}/post/save" method="post" class="col-8">
         <h1 class="mb-4 text-center">
           <c:choose>
             <c:when test="${ not empty post.id }">Editar Post</c:when>

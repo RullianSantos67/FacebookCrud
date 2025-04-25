@@ -80,6 +80,12 @@ public class PostController extends HttpServlet {
 		}
 	}
 
+	 @Override
+	    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+	            throws ServletException, IOException {
+	        doGet(req, resp);
+	    }
+	 
 	private void deletePost(HttpServletRequest req) {
 	    String postIdString = req.getParameter("postId");
 	    
@@ -118,32 +124,34 @@ public class PostController extends HttpServlet {
 	}
 
 	private Post createPost(HttpServletRequest req) {
-		String postId = req.getParameter("post_id");
-		String postContent = req.getParameter("post_content");
-		
-		String dateStr = req.getParameter("post_date");
-		Date postDate = null;
-		try {
-		    postDate = (Date) new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
-		} catch (Exception e) {
-		    throw new RuntimeException("Data inválida", e);
-		}
+	    String postId = req.getParameter("post_id");
+	    String postContent = req.getParameter("post_content");
+	    String dateStr = req.getParameter("post_date");
 
-		int postUserId = Integer.parseInt(req.getParameter("postuser_id"));
-		User user = new User(postUserId); // construtor que recebe só o id
-		
+	    // parse Date util e converte pra sql.Date
+	    java.sql.Date postDate;
+	    try {
+	        java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd")
+	                                    .parse(dateStr);
+	        postDate = new java.sql.Date(utilDate.getTime());
+	    } catch (Exception e) {
+	        throw new RuntimeException("Data inválida", e);
+	    }
 
-		Post post;
-		if (postId.equals(""))
-			post = new Post();
-		else post = new Post(Integer.parseInt(postId));
-		
-		post.setContent(postContent);
-		post.setPostDate(postDate);
-		post.setUser(user);
-		
-		return post;
+	    int postUserId = Integer.parseInt(req.getParameter("postuser_id"));
+	    User user = new User(postUserId);
+
+	    Post post = (postId == null || postId.isEmpty())
+	                ? new Post()
+	                : new Post(Integer.parseInt(postId));
+
+	    post.setContent(postContent);
+	    post.setPostDate(postDate);
+	    post.setUser(user);
+
+	    return post;
 	}
+
 
 	private void loadPost(HttpServletRequest req) {
 	    String postIdParam = req.getParameter("postId");
