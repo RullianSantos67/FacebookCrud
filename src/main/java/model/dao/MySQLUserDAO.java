@@ -136,24 +136,4 @@ public class MySQLUserDAO implements UserDAO {
 		
 		return u;
 	}
-
-	@Override
-	public List<User> findAll() throws ModelException {
-	    DBHandler db = new DBHandler();
-	    List<User> users = new ArrayList<>();
-	    try {
-	        String sql = "SELECT id, nome, sexo, email FROM users";
-	        db.createStatement();
-	        db.executeQuery(sql);
-	        while (db.next()) {
-	            User u = createUser(db);
-	            users.add(u);
-	        }
-	        return users;
-	    } catch (Exception e) {
-	        throw new ModelException("Erro ao listar usuários", e);
-	    } finally {
-	        db.close();
-	    }
-	}
 }

@@ -12,5 +12,4 @@ public interface UserDAO {
 	List<User> listAll() throws ModelException;
 	User findById(int id) throws ModelException;
 	User findByEmail(String email) throws ModelException;
-	List<User> findAll() throws ModelException;
 }

@@ -41,12 +41,7 @@ public class PostController extends HttpServlet {
 			rd.forward(req, resp);
 			break;
 		}
-		case "/facebook/post/form": {
-		    loadUsers(req); // Método para carregar a lista de usuários
-		    RequestDispatcher rd = req.getRequestDispatcher("/form_post.jsp");
-		    rd.forward(req, resp);
-		    break;
-		}
+		
 		case "/facebook/post/save": {
 
 			String postId = req.getParameter("post_id");
@@ -64,7 +59,16 @@ public class PostController extends HttpServlet {
 			RequestDispatcher rd = req.getRequestDispatcher("/form_post.jsp");
 			rd.forward(req, resp);
 			break;
-		} case "/facebook/post/delete": {
+		} 
+		case "/facebook/post/form": {
+
+			loadUser(req);
+
+			RequestDispatcher rd = req.getRequestDispatcher("/form_post.jsp");
+			rd.forward(req, resp);
+			break;
+		}
+		case "/facebook/post/delete": {
 			
 			deletePost(req);
 			
@@ -77,22 +81,29 @@ public class PostController extends HttpServlet {
 	}
 
 	private void deletePost(HttpServletRequest req) {
-		String postIdString = req.getParameter("postId");
-		int postId = Integer.parseInt(postIdString);
-		
-		Post post = new Post(postId);
-		
-		PostDAO dao = DAOFactory.createDAO(PostDAO.class);
-		
-		try {
-			dao.delete(post);
-		} catch (ModelException e) {
-			// log no servidor
-			e.getCause().printStackTrace();
-			e.printStackTrace();
-		}
-	}
+	    String postIdString = req.getParameter("postId");
+	    
+	    if (postIdString == null || postIdString.isEmpty()) {
+	        req.getSession().setAttribute("error", "ID do post não fornecido.");
+	        return;
+	    }
 
+	    try {
+	        int postId = Integer.parseInt(postIdString);
+	        Post post = new Post(postId);
+	        PostDAO dao = DAOFactory.createDAO(PostDAO.class);
+	        
+	        if (dao.delete(post)) {
+	            req.getSession().setAttribute("msg", "Post excluído com sucesso!");
+	        } else {
+	            req.getSession().setAttribute("error", "Falha ao excluir o post.");
+	        }
+	    } catch (NumberFormatException e) {
+	        req.getSession().setAttribute("error", "ID inválido.");
+	    } catch (ModelException e) {
+	        req.getSession().setAttribute("error", "Erro ao excluir post: " + e.getMessage());
+	    }
+	}
 	private void updatePost(HttpServletRequest req) {
 		Post post = createPost(req);
 
@@ -146,9 +157,23 @@ public class PostController extends HttpServlet {
 	        Post post = postDao.findById(postId);
 	        if (post == null) throw new ModelException("Post não encontrado");
 	        
-	        List<User> users = userDao.findAll();
+	        List<User> users = userDao.listAll();
 
 	        req.setAttribute("post", post);
+	        req.setAttribute("users", users);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	private void loadUser(HttpServletRequest req) {
+	    
+	    UserDAO userDao = DAOFactory.createDAO(UserDAO.class);
+
+	    try {
+	        
+	        List<User> users = userDao.listAll();
+
 	        req.setAttribute("users", users);
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -182,14 +207,6 @@ public class PostController extends HttpServlet {
 		if (posts != null)
 			req.setAttribute("posts", posts);
 	}
-	private void loadUsers(HttpServletRequest req) {
-	    UserDAO userDao = DAOFactory.createDAO(UserDAO.class);
-	    try {
-	        List<User> users = userDao.findAll();
-	        req.setAttribute("users", users);
-	    } catch (ModelException e) {
-	        e.printStackTrace();
-	    }
-	}
+	
 
 }
